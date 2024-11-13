@@ -39,4 +39,6 @@ Tree * TreeDumpFunc(Tree * tree, FILE * Out, Tree * sel);
 
 Tree * Akinator(Tree * tree);
 
+int ProcessAnswer(char * answer);
+
 #endif

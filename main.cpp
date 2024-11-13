@@ -4,7 +4,7 @@
 #include "compare.h"
 #include "ascii.h"
 
-int main(int argc, char * argv[])
+int main(void)
 {
 
     Tree * tree = NULL;

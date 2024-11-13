@@ -8,6 +8,8 @@
 Tree * TreeCtor(int val, const char * quality)
 {
     Tree * tree = (Tree*) calloc(1, sizeof(Tree));
+    if (!tree) return NULL;
+
     tree->field = val;
     tree->quality = quality;
 
@@ -120,7 +122,7 @@ Tree * TreeDump(Tree * tree, const char * FileName, Tree * sel)
     TreeDumpFunc(tree, Out, sel);
     fprintf(Out, "}\n");
 
-    char command[200] = "";
+    char command[DEF_SIZE] = "";
     sprintf(command, "dot %s -T png -o %s.png", FileName, FileName);
 
     fclose(Out);
@@ -132,17 +134,20 @@ Tree * TreeDump(Tree * tree, const char * FileName, Tree * sel)
 
 Tree * Akinator(Tree * tree)
 {
-    char answer[10] = "";
+    char answer[DEF_SIZE] = "";
     printf("%s\n", tree->quality);
 
     if (!tree->left && !tree->right)
         return 0;
 
-    scanf("%9s", answer);
+    scanf("%s", answer);
     if (strcmp(answer, "yes") == 0)
         return Akinator(tree->right);
     if (strcmp(answer, "no") == 0)
         return Akinator(tree->left);
+
+    printf("[answer yes/no]\n");
+    return Akinator(tree);
 }
 
 

@@ -5,7 +5,7 @@
 
 #include "ascii.h"
 
-int bgra2char(char * x)
+unsigned char bgra2char(unsigned char * x)
 {
     unsigned int b = x[0] / 3, g = x[1] / 2, r = x[2] / 4;
     if (b + g + r < 20) return ' ';
@@ -32,12 +32,11 @@ int ShowAscii(char * filename)
 
     FILE * picf = fopen("output.raw", "rb");
 
-    char * raww = (char *) raw;
     fread(raw, sizeof(char), PIC_SIZE, picf);
 
-    for (int i = 0; i < PIC_SIZE - 4; i+=4)
+    for (size_t i = 0; i < PIC_SIZE - 4; i+=4)
     {
-        pic[(i / 4) % (PIC_SIZE * 2)] = bgra2char(raww + i);
+        pic[(i / 4) % (PIC_SIZE * 2)] = bgra2char(raw + i);
 
         if ((i / 4) % 200 == 0)
         {

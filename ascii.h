@@ -3,7 +3,9 @@
 
 const size_t PIC_SIZE = 200 * 200;
 
-int bgra2char(char * x);
+const size_t DEF_SIZE = 200;
+
+unsigned char bgra2char(unsigned char * x);
 int ShowAscii(char * filename);
 
 #endif

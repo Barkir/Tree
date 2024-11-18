@@ -1,44 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "tree.h"
 #include "ascii.h"
+#include "compare.h"
 
-Tree * TreeCtor(int val, const char * quality)
+int TreeCtor(Tree ** tree, char * field)
 {
-    Tree * tree = (Tree*) calloc(1, sizeof(Tree));
-    if (!tree) return NULL;
+    *tree = (Tree*) calloc(1, sizeof(Tree));
+    if (!tree) return -1;
 
-    tree->field = val;
-    tree->quality = quality;
+    (*tree)->field = field;
 
-    tree->left = NULL;
-    tree->right = NULL;
-    return tree;
+    (*tree)->left = NULL;
+    (*tree)->right = NULL;
+
+    (*tree)->compare = CompareString;
+
+    return 0;
 }
 
 void TreeDtor(Tree * tree)
 {
+
     if (tree)
     {
         TreeDtor(tree->left);
         TreeDtor(tree->right);
     }
 
+    if (tree) free(tree->field);
     free(tree);
+
 }
 
-Tree * TreeAdd(Tree * tree, int val, const char * quality, CompareFunc_t * compare)
+int TreeAdd(Tree ** tree, char * field)
 {
     if (!tree)
     {
-        return TreeCtor(val, quality);
+        return TreeCtor(tree, field);
     }
-    if (compare(val, tree->field)) tree->left  = TreeAdd(tree->left, val, quality, compare);
-    else                           tree->right = TreeAdd(tree->right, val, quality, compare);
+    if ((*tree)->compare((*tree)->field) < 0)   return TreeAdd(&((*tree)->left), field);
+    else                                        return TreeAdd(&((*tree)->right), field);
 
-    return tree;
+    return 0;
 
 }
 
@@ -47,9 +54,10 @@ Tree * TreePrint(Tree * tree, int height)
     if (!tree)
         return tree;
 
-    printf("tree[%p], %*stree.field = %d, tree.left[%p] tree.right[%p]\n", tree, height*4, "", tree->field, tree->left, tree->right);
+    printf("tree[%p], %*stree.field = %s, tree.left[%p] tree.right[%p]\n", tree, height*4, "", tree->field, tree->left, tree->right);
     TreePrint(tree->left, height + 1);
     TreePrint(tree->right, height + 1);
+
     return tree;
 }
 
@@ -60,33 +68,36 @@ Tree * TreePrintBracket(Tree * tree, int order)
 
     printf("( ");
 
-    if (order == PRE_ORDER) printf("%d ", tree->field);
+    if (order == PRE_ORDER) printf("\"%s\" ", tree->field);
     TreePrintBracket(tree->left, order);
-    if (order == IN_ORDER) printf("%d ", tree->field);
+
+    if (order == IN_ORDER) printf("\"%s\" ", tree->field);
+
     TreePrintBracket(tree->right, order);
-    if (order == POST_ORDER) printf("%d ", tree->field);
+    if (order == POST_ORDER) printf("\"%s\" ", tree->field);
 
     printf(") ");
 
     return tree;
 }
 
-Tree * TreeSearchFunc(Tree * tree, int val)
+Tree * TreeSearchFunc(Tree * tree, const char * field)
 {
 
     if (!tree)              return NULL;
-    if (tree->field == val) return tree;
+    if (strcmp(tree->field, field) == 0) return tree;
 
-    if (tree->field < val)  return TreeSearchFunc(tree->right, val);
+    TreeSearchFunc(tree->right, field);
+    TreeSearchFunc(tree->left, field);
 
-    return TreeSearchFunc(tree->left, val);
+    return tree;
 }
 
-int TreeSearch(Tree * tree, int val)
+int TreeSearch(Tree * tree, const char * field)
 {
-    Tree * tr = TreeSearchFunc(tree, val);
-    if (tr && tr->field == val)
-        return printf("tree[%p], tree.field = %d, tree.left[%p], tree.right[%p]\n", tr, tr->field, tr->left, tr->right);
+    Tree * found = TreeSearchFunc(tree, field);
+    if (found && found->field == field)
+        return printf("tree[%p], tree.field = %s, tree.left[%p], tree.right[%p]\n", found, found->field, found->left, found->right);
     return -printf("not found :(\n");
 }
 
@@ -98,16 +109,14 @@ Tree * TreeDumpFunc(Tree * tree, FILE * Out, Tree * sel)
     if (!tree)
         return tree;
 
-    // fprintf(Out, "tree%p [shape = Mrecord; label = \"{ %s | field = %d  | { left = %p | right = %p } }\"; style = filled; fillcolor = \"#%06X\"];\n",
-    //     tree, tree->quality, tree->field, tree->left, tree->right, color);
-
     fprintf(Out, "tree%p [shape = Mrecord; label = \"{ %s | adr = %p}\"; style = filled; fillcolor = \"#%06X\"];\n",
-        tree, tree->quality, tree, color);
+        tree, tree->field, tree, color);
+
     if (tree->left)
-        fprintf(Out, "tree%p -> tree%p\n", tree, tree->left);
+        fprintf(Out, "tree%p -> tree%p [label = \"NO\"]\n", tree, tree->left);
 
     if (tree->right)
-        fprintf(Out, "tree%p -> tree%p\n", tree, tree->right);
+        fprintf(Out, "tree%p -> tree%p [label = \"YES\"]\n", tree, tree->right);
 
     TreeDumpFunc(tree->left, Out, sel);
     TreeDumpFunc(tree->right, Out, sel);
@@ -118,6 +127,7 @@ Tree * TreeDumpFunc(Tree * tree, FILE * Out, Tree * sel)
 Tree * TreeDump(Tree * tree, const char * FileName, Tree * sel)
 {
     FILE * Out = fopen(FileName, "wb");
+
     fprintf(Out, "digraph\n{\n");
     TreeDumpFunc(tree, Out, sel);
     fprintf(Out, "}\n");
@@ -134,32 +144,99 @@ Tree * TreeDump(Tree * tree, const char * FileName, Tree * sel)
 
 Tree * Akinator(Tree * tree)
 {
-    char answer[DEF_SIZE] = "";
-    printf("\n%s\n", tree->quality);
-
     if (!tree->left && !tree->right)
-        return 0;
-
-    scanf("%s", answer);
-
-    if (!strlen(answer))
+    {
+        printf("%s\n", tree->field);
         return NULL;
+    }
 
-    if (strcmp(answer, "yes") == 0)
-        return Akinator(tree->right);
-
-    if (strcmp(answer, "no") == 0)
-        return Akinator(tree->left);
-
-    printf("\n[answer yes/no]\n");
-    return Akinator(tree);
+    switch(tree->compare(tree->field))
+    {
+        case TREE_YES:
+            return Akinator(tree->right);
+        case TREE_NO:
+            return Akinator(tree->left);
+        case TREE_END:
+            return tree;
+        default:
+            return Akinator(tree);
+    }
 }
 
-int ProcessAnswer(char * answer)
+int TreeParse(Tree ** tree, const char * filename)
 {
-    for (size_t i = 0; i < strlen(answer); i++)
-        if (answer[i] == EOF) return EOF;
+    FILE * file = fopen(filename, "rb");
+    fseek(file, 0L, SEEK_END);
+    long int fsize = ftell(file);
+    if (fsize <= 0) return -fprintf(stderr, "Wrong file size");
+    rewind(file);
+
+    char * expression = (char *) calloc((size_t)(fsize + 1), sizeof(char));
+    if (!expression) return -fprintf(stderr,"Allocate Memory error!");
+    fread(expression, sizeof(char), (size_t) fsize, file);
+
+    const char * ptr = expression;
+    _TreeParse(tree, &ptr, 0, (int)(strlen(ptr) - 1));
+
+    fclose(file);
+    free(expression);
+    return 1;
+}
+
+int _TreeParse(Tree ** tree, const char ** string, int start, int end)
+{
+    int index = -1;
+
+    if (start > end) return 0;
+    char * field = NULL;
+
+    while (*((*string) + start) == ' ') start++;
+
+    while (*((*string) + start) != '\"')
+        start++;
+    start++;
+
+    const char * ptr = ((*string) + start);
+    size_t size = 0;
+    while (*((*string) + start) != '\"')
+    {
+        start++;
+        size++;
+    }
+    start++;
+
+    field = (char*) calloc(size + 1, sizeof(char));
+    if (!field) return -fprintf(stderr, "Allocate Memory Error!\n");
+    memcpy(field, ptr, size);
+    TreeCtor(tree, field);
+
+    while (*((*string) + start) == ' ') start++;
+    if (start <= end)
+        index = FindIndex(string, start, end);
+
+    if (index < 0) return -1;
+    _TreeParse(&(*tree)->left, string, start + 1, index - 1);
+    _TreeParse(&(*tree)->right, string, index + 2, end - 1);
     return 0;
+
+
+
+}
+
+int FindIndex(const char ** string, int start, int end)
+{
+    if (start > end) return -fprintf(stderr, "start[%d] > end[%d]\n", start, end);
+    int res = 0;
+    if (*(*string + start) != '(') return -1;
+    for (int i = start; i <= end; i++)
+    {
+        if (res < 0) return -fprintf(stderr, "Wrong Bracket Sequence!\n");
+        if (*(*string + i) == '(') res++;
+        else if (*(*string + i) == ')') res--;
+        if (!res) return i;
+    }
+
+    return -fprintf(stderr, "Not Found!\n");
 }
 
 

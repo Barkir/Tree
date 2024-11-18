@@ -1,44 +1,34 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "tree.h"
 #include "compare.h"
 #include "ascii.h"
 
+// C3 Algorithm
+// BNF Normal Form
+
+/*
+ * This is a tree structure made by barkir
+ * You can create your own akinator tree using bracket sequence
+ * e.g: ("NBA CHAMP?" ("Kwame Brown")("Michael Jordan"))
+ * Write this down in a file and run the code below
+ * As an example of a choice tree you can use toparse.txt
+ * You can also use TreeDump to create a png picture of your tree.
+ * For this write TreeDump(your_tree, "your_file.txt")
+ * Don't forget to use TreeDtor after you finished working with tree
+ *
+ * soon updates:
+ *               tree parser for equations,
+ *               picture ascii dump when akinator guessed correct.
+ *
+*/
+
 int main(void)
 {
-
     Tree * tree = NULL;
-
-    tree = TreeAdd(tree, 0, "NBA CHAMP?", CompareLess);
-
-    tree->left = TreeAdd(tree->left, 0, "MVP?", CompareLess);
-    tree->right = TreeAdd(tree->right, 1, "MVP?", CompareLess);
-
-    tree->left->left = TreeAdd(tree->left->left, 0, "High?", CompareLess);
-
-    tree->left->left->left = TreeAdd(tree->left->left->left, 0, "King of 4th quarters?", CompareLess);
-    tree->left->left->right = TreeAdd(tree->left->left->right, 1, "Ultimate Dunker?", CompareLess);
-
-    tree->left->left->left->left = TreeAdd(tree->left->left->left->left, 0, "Dunno", CompareLess);
-    tree->left->left->left->right = TreeAdd(tree->left->left->left->right, 1, "Isaiah Thomas", CompareLess);
-
-    tree->left->left->right->left= TreeAdd(tree->left->left->left->right->left, 0, "Dunno", CompareLess);
-    tree->left->left->right->right= TreeAdd(tree->left->left->left->right->right, 1, "Vince Carter", CompareLess);
-
-    tree->left->right = TreeAdd(tree->left->right, 1, "High?", CompareLess);
-    tree->left->right->left = TreeAdd(tree->left->right->left, 0, "Dribble King?", CompareLess);
-    tree->left->right->left->left = TreeAdd(tree->left->right->left->left, 0, "Dunno", CompareLess);
-    tree->left->right->left->right = TreeAdd(tree->left->right->left->right, 1, "Allen Iverson", CompareLess);
-    tree->left->right->right = TreeAdd(tree->left->right->right, 1, "Karl Malone", CompareLess);
-
-
-    tree->right->left = TreeAdd(tree->right->left, 0, "Rajon Rondo", CompareLess);
-    tree->right->right = TreeAdd(tree->right->right, 1, "Michael Jordan", CompareLess);
-
-    TreeDump(tree, "out.dot", tree);
-
+    TreeParse(&tree, "toparse.txt");
     Akinator(tree);
-
     TreeDtor(tree);
-
 }

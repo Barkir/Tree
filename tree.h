@@ -1,7 +1,7 @@
 #ifndef TREE_H
 #define TREE_H
 
-typedef int CompareFunc_t(const int a, const int b);
+typedef int CompareFunc_t(const char * field);
 
 enum order
 {
@@ -12,24 +12,27 @@ enum order
 
 enum choice
 {
-    YES,
-    NO
+    TREE_DEF,
+    TREE_YES,
+    TREE_NO,
+    TREE_END
 };
 
 struct Tree
 {
-    int field;
-    const char * quality;
+    char * field;
     Tree * left;
     Tree * right;
+    CompareFunc_t * compare;
 };
 
-Tree * TreeCtor(int val, const char * quality);
+int TreeCtor(Tree ** tree, char * field);
 void TreeDtor(Tree * tree);
 
-Tree * TreeAdd(Tree * tree, int val, const char * quality, CompareFunc_t * compare);
-Tree * TreeSearchFunc(Tree * tree, int val);
-int TreeSearch(Tree * tree, int val);
+Tree * TreeSearchFunc(Tree * tree, const char * field);
+int TreeSearch(Tree * tree, const char * field);
+
+int TreeAdd(Tree ** tree, char * field);
 
 Tree * TreePrint(Tree * tree, int height);
 Tree * TreePrintBracket(Tree * tree, int height);
@@ -39,6 +42,13 @@ Tree * TreeDumpFunc(Tree * tree, FILE * Out, Tree * sel);
 
 Tree * Akinator(Tree * tree);
 
-int ProcessAnswer(char * answer);
+int TreeParse(Tree ** tree, const char * filename);
+int _TreeParse(Tree ** tree, const char ** string, int start, int end);
+int FindIndex(const char ** string, int start, int end);
+
 
 #endif
+
+
+
+

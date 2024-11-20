@@ -81,24 +81,49 @@ Tree * TreePrintBracket(Tree * tree, int order)
     return tree;
 }
 
-Tree * TreeSearchFunc(Tree * tree, const char * field)
+int TreeSearchFunc(Tree * tree, const char * field, int num)
 {
+    if (tree == NULL) return NULL;
 
-    if (!tree)              return NULL;
-    if (strcmp(tree->field, field) == 0) return tree;
+    if (strcmp(tree->field, field) == 0) return num;
 
-    TreeSearchFunc(tree->right, field);
-    TreeSearchFunc(tree->left, field);
+    int result  = TreeSearchFunc(tree->left, field, num * 10 + 1);
+    if (!result) result = TreeSearchFunc(tree->right, field, num * 10 + 2);
 
-    return tree;
+    return result;
+
 }
 
 int TreeSearch(Tree * tree, const char * field)
 {
-    Tree * found = TreeSearchFunc(tree, field);
-    if (found && found->field == field)
-        return printf("tree[%p], tree.field = %s, tree.left[%p], tree.right[%p]\n", found, found->field, found->left, found->right);
+
+    int found = TreeSearchFunc(tree, field, 0);
+    int result = 0;
+
+    while (found)
+    {
+        result = result * 10 + found % 10;
+        found /= 10;
+    }
+
+    if (result)
+    {
+        _TreeSearchHelpFunc(tree, result);
+        return 1;
+    }
     return -printf("not found :(\n");
+}
+
+void _TreeSearchHelpFunc(Tree * tree, int num)
+{
+    if (num)
+    {
+        if (num % 10 == 1) printf("not ");
+        printf("%s, ", tree->field);
+        if (num % 10 == 1) _TreeSearchHelpFunc(tree->left, num / 10);
+        if (num % 10 == 2) _TreeSearchHelpFunc(tree->right, num / 10);
+    }
+    else if (!tree->left || !tree->right) printf("it is %s\n", tree->field);
 }
 
 Tree * TreeDumpFunc(Tree * tree, FILE * Out, Tree * sel)
@@ -109,7 +134,7 @@ Tree * TreeDumpFunc(Tree * tree, FILE * Out, Tree * sel)
     if (!tree)
         return tree;
 
-    fprintf(Out, "tree%p [shape = Mrecord; label = \"{ %s | adr = %p}\"; style = filled; fillcolor = \"#%06X\"];\n",
+    fprintf(Out, "tree%p [shape = Mrecord; label = \"{ %s? | adr = %p}\"; style = filled; fillcolor = \"#%06X\"];\n",
         tree, tree->field, tree, color);
 
     if (tree->left)
@@ -146,7 +171,7 @@ Tree * Akinator(Tree * tree)
 {
     if (!tree->left && !tree->right)
     {
-        printf("%s\n", tree->field);
+        printf("%s?\n", tree->field);
         return NULL;
     }
 

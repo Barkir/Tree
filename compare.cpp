@@ -15,7 +15,7 @@ int CompareNum(int num1, int num2)
 int CompareString(const char * field)
 {
     char answer[100] = "";
-    printf("%s\n", field);
+    printf("%s?\n", field);
     scanf("%99s", answer);
     if (strcmp(answer, "yes") == 0) return TREE_YES;
     if (strcmp(answer, "no") == 0)  return TREE_NO;

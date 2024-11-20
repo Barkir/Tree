@@ -30,5 +30,8 @@ int main(void)
     Tree * tree = NULL;
     TreeParse(&tree, "toparse.txt");
     Akinator(tree);
+    TreeSearch(tree, "Isaiah Thomas");
+    TreeDump(tree, "tree", tree);
     TreeDtor(tree);
+
 }

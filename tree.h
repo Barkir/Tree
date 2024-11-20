@@ -29,8 +29,9 @@ struct Tree
 int TreeCtor(Tree ** tree, char * field);
 void TreeDtor(Tree * tree);
 
-Tree * TreeSearchFunc(Tree * tree, const char * field);
+int TreeSearchFunc(Tree * tree, const char * field, int num);
 int TreeSearch(Tree * tree, const char * field);
+void _TreeSearchHelpFunc(Tree * tree, int num);
 
 int TreeAdd(Tree ** tree, char * field);
 
